@@ -17,11 +17,11 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
-        <main className="w-full overflow-scroll relative">
+        <main className="w-full min-h-[600px] overflow-scroll relative">
           <StickyNavbar />
 
           <div className="p-4">
-            <div className="mx-auto max-w-screen-md py-12">
+            <div className="mx-auto max-w-screen-lg py-12">
               <Routes>
                 {/* Public route */}
                 <Route path="/login" element={<Login />} />

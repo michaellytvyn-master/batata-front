@@ -1,12 +1,12 @@
 import {
-	Card,
-	Typography
+  Card,
+  Typography
 } from "@material-tailwind/react"
 import React from "react"
-
 const Home = () => {
   return (
        <>
+
         <Card className="mb-12 overflow-hidden">
           <img
             alt="nature"

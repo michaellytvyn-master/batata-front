@@ -1,11 +1,11 @@
 import {
-	Button,
-	CardBody,
-	CardHeader,
-	Input,
-	Typography
+  Button,
+  CardBody,
+  CardHeader,
+  Input,
+  Typography
 } from "@material-tailwind/react"
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import GoogleAuthButton from '../components/GoogleAuthButton'
@@ -35,27 +35,102 @@ const Auth = () => {
     return () => unsubscribe(); // Cleanup on component unmount
   }, []);
 
+  useEffect(() => {
+    if(user){
+      saveUserToBackend()
+    }
+  }, [user]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    if (isSignUp && password !== repeatPassword) {
+      alert("Passwords do not match. Please try again.");
+      return;
+    }
+  
     try {
       if (isSignUp) {
+        const emailExists = await checkEmailExists(email);
+        if (emailExists) {
+          alert("This email is already in use. Please try logging in or using a different email.");
+          return;
+        }
         await createUserWithEmailAndPassword(auth, email, password);
-        alert('User registered successfully!');
+        // alert("User registered successfully!");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-        alert('User logged in successfully!');
+        // alert("User logged in successfully!");
       }
+    } catch (error) {
+      if (error.code === "auth/email-already-in-use") {
+        alert("This email is already in use. Please try logging in or using a different email.");
+      } else if (error.code === "auth/weak-password") {
+        alert("Password is too weak. Please choose a stronger password.");
+      } else if (error.code === "auth/invalid-email") {
+        alert("Invalid email address. Please check and try again.");
+      } else {
+        alert(error.message);
+      }
+    }
+  };  
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // alert('User logged out successfully!');
     } catch (error) {
       alert(error.message);
     }
   };
 
-  const handleLogout = async () => {
+  const checkEmailExists = async (email) => {
     try {
-      await signOut(auth);
-      alert('User logged out successfully!');
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      if (signInMethods.length > 0) {
+        return true; // Email is already registered
+      }
+      return false; // Email is available
     } catch (error) {
-      alert(error.message);
+      console.error("Error checking email:", error.message);
+      return false;
+    }
+  };
+
+  const saveUserToBackend = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+  
+    if (!user) {
+      console.error("No user is logged in.");
+      return;
+    }
+  
+    try {
+      // Get Firebase ID token
+      const idToken = await user.getIdToken();
+  
+      // Send user data and token to your backend
+      const response = await fetch("http://localhost:5001/api/user/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          displayName: user.displayName,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to save user info on the backend");
+      }
+  
+      const data = await response.json();
+      console.log("User info saved successfully:", data);
+    } catch (err) {
+      console.error("Error saving user info:", err.message);
     }
   };
 

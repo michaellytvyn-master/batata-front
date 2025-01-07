@@ -11,7 +11,7 @@ const GoogleAuthButton = () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      alert(`Logged in as: ${result.user.email}`);
+      // alert(`Logged in as: ${result.user.email}`);
     } catch (error) {
       alert(error.message);
     }

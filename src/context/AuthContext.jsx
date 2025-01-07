@@ -1,5 +1,6 @@
 import { onAuthStateChanged } from 'firebase/auth'
 import React, { createContext, useEffect, useState } from 'react'
+import { Loader } from '../components/Loader'
 import { auth } from '../firebase/firebaseConfig'
 
 export const AuthContext = createContext()
@@ -19,7 +20,8 @@ export const AuthProvider = ({ children }) => {
 
 	return (
 		<AuthContext.Provider value={{ user, loading }}>
-			{!loading ? children : <div>Loading...</div>} {/* Show loader while checking auth */}
+			{!loading ? children : 
+			<div className="w-full h-screen flex items-center justify-center"><Loader/></div>} {/* Show loader while checking auth */}
 		</AuthContext.Provider>
 	)
 };

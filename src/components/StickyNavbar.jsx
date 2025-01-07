@@ -2,17 +2,21 @@
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 // <FontAwesomeIcon icon={faUser} size="2x" className="text-black w-5" />
 import {
-	Button,
-	IconButton,
-	MobileNav,
-	Navbar,
-	Typography
+  Button,
+  IconButton,
+  MobileNav,
+  Navbar,
+  Typography
 } from "@material-tailwind/react"
-import React from "react"
+import { signOut } from 'firebase/auth'
+import React, { useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { AuthContext } from '../context/AuthContext'
+import { auth } from '../firebase/firebaseConfig.js'
 
 export function StickyNavbar() {
   const [openNav, setOpenNav] = React.useState(false);
+  const { user } = useContext(AuthContext); 
 		const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -53,6 +57,15 @@ export function StickyNavbar() {
     </ul>
   );
 
+    const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        // alert('User logged out successfully!');
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
 		const loginHandler = () => {
 			navigate("/login?signup=0");
 		}
@@ -70,12 +83,13 @@ export function StickyNavbar() {
             href="#"
             className="mr-4 cursor-pointer py-1.5 font-medium"
           >
-            Material Tailwind
+            BatataBot
           </Typography>
           <div className="flex items-center gap-4">
             <div className="mr-4 hidden lg:block">{navList}</div>
             <div className="flex items-center gap-x-1">
 
+             {!user ? <>
               <Button
                 variant="text"
                 size="sm"
@@ -92,6 +106,16 @@ export function StickyNavbar() {
               >
                 <span>Sign in</span>
               </Button>
+             </> : <>
+             <Button
+                variant="text"
+                size="sm"
+                className="hidden lg:inline-block"
+								onClick={handleLogout}
+              >
+                <span>Log Out</span>
+              </Button>
+             </>}
             </div>
             <IconButton
               variant="text"
@@ -135,12 +159,19 @@ export function StickyNavbar() {
         <MobileNav open={openNav}>
           {navList}
           <div className="flex items-center gap-x-1">
-            <Button onClick={loginHandler} fullWidth variant="text" size="sm" className="">
-              <span>Log In</span>
+            {!user ? <>
+              <Button onClick={loginHandler} fullWidth variant="text" size="sm" className="">
+                 <span>Log In</span>
+               </Button>
+               <Button onClick={signUpHandler} fullWidth variant="gradient" size="sm" className="">
+                 <span>Sign in</span>
+               </Button>
+            </> : <>
+              <Button onClick={handleLogout} fullWidth variant="text" size="sm" className="">
+              <span>Log Out</span>
             </Button>
-            <Button onClick={signUpHandler} fullWidth variant="gradient" size="sm" className="">
-              <span>Sign in</span>
-            </Button>
+            </>}
+         
           </div>
         </MobileNav>
       </Navbar>
